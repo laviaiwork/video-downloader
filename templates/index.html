@@ -3,148 +3,355 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>הורדת סרטונים</title>
+    <title>הורדת סרטונים ושמע</title>
     <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            --accent: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            padding: 36px;
+            max-width: 520px;
+            width: 100%;
             text-align: center;
-            max-width: 500px;
-            width: 90%;
         }
+
+        .header-icon {
+            font-size: 42px;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
         h1 {
-            color: #1a1a1a;
-            margin-bottom: 10px;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-main);
         }
-        p {
-            color: #555;
-            margin-bottom: 30px;
+
+        p.subtitle {
+            color: var(--text-sub);
+            font-size: 14px;
+            margin-bottom: 24px;
         }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #334155;
+        }
+
         input[type="text"] {
             width: 100%;
-            padding: 12px;
+            padding: 14px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            direction: ltr;
+            transition: all 0.2s;
+            outline: none;
+            background: #f8fafc;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        /* סוג הורדה - טאבים */
+        .type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             margin-bottom: 20px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            direction: ltr; /* שמירה על כיווניות שמאל-לימין עבור קישורים */
-            font-size: 16px;
         }
-        button {
-            background-color: #0066cc;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
+
+        .type-btn {
+            padding: 12px;
+            border: 2px solid var(--border);
+            background: #fff;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            color: var(--text-sub);
+        }
+
+        .type-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .select-group {
+            margin-bottom: 24px;
+            text-align: right;
+        }
+
+        select {
             width: 100%;
-            transition: background-color 0.3s ease;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            background: #fff;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        button:hover {
-            background-color: #0052a3;
+
+        select:focus {
+            border-color: var(--primary);
         }
-        .disclaimer {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #666;
-            background-color: #fff9e6;
-            border: 1px solid #ffeeba;
-            border-radius: 6px;
+
+        .btn-download {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            width: 100%;
             padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        }
+
+        .btn-download:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-download:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* מחוון טעינה והודעות */
+        .status-box {
+            margin-top: 18px;
+            font-size: 14px;
+            font-weight: 600;
+            min-height: 24px;
+        }
+
+        .error-msg { color: #ef4444; }
+        .success-msg { color: #10b981; }
+
+        .spinner {
+            display: none;
+            margin: 16px auto 0;
+            width: 32px;
+            height: 32px;
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* דיסקליימר */
+        .disclaimer {
+            margin-top: 28px;
+            padding: 14px 16px;
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #92400e;
             text-align: justify;
             line-height: 1.5;
-        }
-        #message {
-            margin-top: 15px;
-            font-weight: bold;
-        }
-        .error { color: #d9534f; }
-        .success { color: #5cb85c; }
-        #loader {
-            display: none;
-            margin-top: 15px;
-            color: #0066cc;
-            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>מוריד הסרטונים</h1>
-        <p>הדבק כאן קישור לסרטון (יוטיוב, טיקטוק, אינסטגרם ועוד)</p>
-        
-        <input type="text" id="urlInput" placeholder="https://www.youtube.com/watch?v=...">
-        <button onclick="downloadVideo()">הורד סרטון</button>
-        
-        <div id="loader">טוען... זה עשוי לקחת מספר דקות תלוי באורך הסרטון ⏳</div>
-        <div id="message"></div>
 
-        <div class="disclaimer">
-            <strong>הצהרה משפטית חשובה:</strong> כלי זה נועד לשימוש אישי וחוקי בלבד. אין להשתמש באתר זה כדי להוריד, להפיץ או לעשות שימוש מסחרי בתכנים המוגנים בזכויות יוצרים ללא אישור מפורש מבעלי הזכויות. המשתמש באתר לוקח על עצמו את האחריות המלאה לכל הפרה של חוקי זכויות יוצרים (Copyright).
+<div class="card">
+    <div class="header-icon">📥</div>
+    <h1>הורדת סרטונים ושמע</h1>
+    <p class="subtitle">הורד סרטונים או שמע מיוטיוב, טיקטוק, אינסטגרם ועוד</p>
+
+    <!-- הזנת קישור -->
+    <div class="input-group">
+        <label for="urlInput">קישור לסרטון:</label>
+        <input type="text" id="urlInput" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+    </div>
+
+    <!-- בחירת סוג (וידאו או שמע) -->
+    <div class="input-group">
+        <label>סוג הורדה:</label>
+        <div class="type-selector">
+            <button type="button" class="type-btn active" id="btnVideo" onclick="setType('video')">
+                🎬 וידאו (MP4)
+            </button>
+            <button type="button" class="type-btn" id="btnAudio" onclick="setType('audio')">
+                🎵 שמע בלבד (MP3)
+            </button>
         </div>
     </div>
 
-    <script>
-        async function downloadVideo() {
-            const urlInput = document.getElementById('urlInput').value;
-            const messageDiv = document.getElementById('message');
-            const loader = document.getElementById('loader');
-            
-            if (!urlInput) {
-                messageDiv.textContent = 'אנא הכנס קישור תקין.';
-                messageDiv.className = 'error';
-                return;
-            }
+    <!-- בחירת איכות -->
+    <div class="select-group">
+        <label for="qualitySelect">איכות מבוקשת:</label>
+        <select id="qualitySelect">
+            <!-- מתעדכן דינמית דרך JS -->
+        </select>
+    </div>
 
-            messageDiv.textContent = '';
-            loader.style.display = 'block';
+    <!-- כפתור הורדה -->
+    <button class="btn-download" id="submitBtn" onclick="startDownload()">הורד עכשיו</button>
 
-            try {
-                const response = await fetch('/download', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ url: urlInput })
-                });
+    <div class="spinner" id="spinner"></div>
+    <div class="status-box" id="statusMessage"></div>
 
-                const data = await response.json();
-                loader.style.display = 'none';
+    <!-- דיסקליימר משפטי -->
+    <div class="disclaimer">
+        <strong>⚠️ הצהרה משפטית:</strong> כלי זה נועד לשימוש אישי וחוקי בלבד. אין להשתמש באתר זה להורדה או הפצה של תכנים המוגנים בזכויות יוצרים ללא הרשאה מפורשת מבעלי הזכויות. המשתמש נושא באחריות מלאה לכל שימוש.
+    </div>
+</div>
 
-                if (response.ok && data.success) {
-                    messageDiv.textContent = 'הסרטון מוכן! ההורדה מתחילה...';
-                    messageDiv.className = 'success';
-                    
-                    // יצירת קישור נסתר והפעלת לחיצה עליו כדי להתחיל את ההורדה בדפדפן
-                    const a = document.createElement('a');
-                    a.href = data.download_url;
-                    a.download = data.title;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                } else {
-                    messageDiv.textContent = 'שגיאה: ' + (data.error || 'לא ניתן להוריד את הסרטון מהקישור הזה.');
-                    messageDiv.className = 'error';
-                }
-            } catch (error) {
-                loader.style.display = 'none';
-                messageDiv.textContent = 'שגיאת רשת או שהשרת אינו זמין. נסה שוב מאוחר יותר.';
-                messageDiv.className = 'error';
-            }
+<script>
+    let currentType = 'video';
+
+    const qualityOptions = {
+        video: [
+            { value: 'best', label: '🌟 איכות מקסימלית (הכי גבוהה שיש)' },
+            { value: '1080', label: '📺 1080p (Full HD)' },
+            { value: '720', label: '⚡ 720p (HD - מומלץ ומהיר)' },
+            { value: '480', label: '📱 480p (איכות רגילה)' },
+            { value: '360', label: '💾 360p (חסכוני ומהיר מאוד)' }
+        ],
+        audio: [
+            { value: '320', label: '🎧 320 kbps (איכות שמע מעולה - High)' },
+            { value: '192', label: '🎵 192 kbps (איכות מצוינת - מומלץ)' },
+            { value: '128', label: '📻 128 kbps (איכות רגילה וקובץ קטן)' }
+        ]
+    };
+
+    function updateQualityDropdown() {
+        const select = document.getElementById('qualitySelect');
+        select.innerHTML = '';
+        qualityOptions[currentType].forEach(opt => {
+            const el = document.createElement('option');
+            el.value = opt.value;
+            el.textContent = opt.label;
+            select.appendChild(el);
+        });
+    }
+
+    function setType(type) {
+        currentType = type;
+        document.getElementById('btnVideo').classList.toggle('active', type === 'video');
+        document.getElementById('btnAudio').classList.toggle('active', type === 'audio');
+        updateQualityDropdown();
+    }
+
+    // אתחול ראשוני של אפשרויות האיכות
+    updateQualityDropdown();
+
+    async function startDownload() {
+        const url = document.getElementById('urlInput').value.trim();
+        const quality = document.getElementById('qualitySelect').value;
+        const statusEl = document.getElementById('statusMessage');
+        const spinner = document.getElementById('spinner');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (!url) {
+            statusEl.textContent = 'אנא הדבק קישור תקין לסרטון.';
+            statusEl.className = 'status-box error-msg';
+            return;
         }
-    </script>
+
+        // איפוס ממשק
+        statusEl.textContent = currentType === 'audio' ? 'מחלץ וממיר את השמע ל-MP3... ⏳' : 'מכין ומוריד את הוידאו... ⏳';
+        statusEl.className = 'status-box';
+        spinner.style.display = 'block';
+        submitBtn.disabled = true;
+
+        try {
+            const res = await fetch('/download', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    url: url,
+                    type: currentType,
+                    quality: quality
+                })
+            });
+
+            const data = await res.json();
+            spinner.style.display = 'none';
+            submitBtn.disabled = false;
+
+            if (res.ok && data.success) {
+                statusEl.textContent = '🎉 הקובץ מוכן! ההורדה מתחילה...';
+                statusEl.className = 'status-box success-msg';
+
+                const a = document.createElement('a');
+                a.href = data.download_url;
+                a.download = data.title;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                statusEl.textContent = 'שגיאה: ' + (data.error || 'לא ניתן להוריד את הקובץ.');
+                statusEl.className = 'status-box error-msg';
+            }
+        } catch (err) {
+            spinner.style.display = 'none';
+            submitBtn.disabled = false;
+            statusEl.textContent = 'שגיאת רשת. אנא נסה שוב בעוד מספר שניות.';
+            statusEl.className = 'status-box error-msg';
+        }
+    }
+</script>
+
 </body>
 </html>
