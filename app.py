@@ -5,19 +5,23 @@ import uuid
 import threading
 import shutil
 import tempfile
+import sys
 
 # הפעלת ffmpeg מובנה לכל פלטפורמה (ענן / שרת / ווינדוס)
 try:
     import static_ffmpeg
     static_ffmpeg.add_paths()
-except Exception:
-    pass
+except Exception as e:
+    print(f"static_ffmpeg init info: {e}", file=sys.stderr)
 
 app = Flask(__name__)
 DOWNLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'video_downloads')
 
 if not os.path.exists(DOWNLOAD_FOLDER):
-    os.makedirs(DOWNLOAD_FOLDER)
+    try:
+        os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+    except Exception:
+        pass
 
 def get_ffmpeg_path():
     path = shutil.which('ffmpeg')
@@ -28,8 +32,8 @@ def get_ffmpeg_path():
         return win_default
     return None
 
-def delete_file_later(filepath, delay=90):
-    """מחיקת הקובץ לאחר 90 שניות כדי לפנות מקום בשרת"""
+def delete_file_later(filepath, delay=120):
+    """מחיקת הקובץ לאחר 2 דקות כדי לפנות מקום בשרת"""
     def _delete():
         import time
         time.sleep(delay)
@@ -40,15 +44,19 @@ def delete_file_later(filepath, delay=90):
                 pass
     threading.Thread(target=_delete, daemon=True).start()
 
+@app.errorhandler(Exception)
+def handle_unexpected_error(e):
+    return jsonify({'error': f'שגיאת שרת פנימית: {str(e)}'}), 500
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/download', methods=['POST'])
 def download():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     url = data.get('url', '').strip()
-    download_type = data.get('type', 'video')  # video או audio
+    download_type = data.get('type', 'video')
     quality = data.get('quality', 'best')
 
     if not url:
@@ -58,12 +66,12 @@ def download():
     filename = str(uuid.uuid4())
 
     try:
-        # הגדרות בסיסיות שעוקפות חסימות של יוטיוב ושרתי ענן
         common_opts = {
             'outtmpl': f'{DOWNLOAD_FOLDER}/{filename}.%(ext)s',
             'quiet': True,
             'no_warnings': True,
             'nocheckcertificate': True,
+            'socket_timeout': 60,
             'extractor_args': {
                 'youtube': {
                     'player_client': ['android', 'ios', 'tv', 'mweb', 'web']
@@ -109,7 +117,7 @@ def download():
 
         matching_files = [f for f in os.listdir(DOWNLOAD_FOLDER) if f.startswith(filename)]
         if not matching_files:
-            return jsonify({'error': 'הקובץ לא נוצר כראוי בשרת'}), 500
+            return jsonify({'error': 'הקובץ לא נמצא בשרת לאחר ההורדה'}), 500
 
         actual_filename = matching_files[0]
         ext = os.path.splitext(actual_filename)[1].lstrip('.')
@@ -126,13 +134,12 @@ def download():
 
     except Exception as e:
         err_msg = str(e)
-        # תרגום שגיאות טכניות להודעות ברורות בעברית
         if "Sign in to confirm you're not a bot" in err_msg or "bot" in err_msg.lower():
-            friendly_err = "יוטיוב חסם זמנית את ההורדה משרת זה (זיהוי בוטים). נסה שוב בעוד מספר דקות או בחר איכות אחרת."
+            friendly_err = "יוטיוב חסם זמנית את ההורדה משרת זה (זיהוי בוטים). נסה שוב בעוד מספר רגעים."
         elif "Private video" in err_msg:
-            friendly_err = "הסרטון הוא פרטי ולא ניתן להוריד אותו."
+            friendly_err = "הסרטון הוא פרטי ולא ניתן להורידו."
         elif "Video unavailable" in err_msg:
-            friendly_err = "הסרטון אינו זמין או הוסר מהפלטפורמה."
+            friendly_err = "הסרטון אינו זמין או הוסר."
         else:
             friendly_err = err_msg
 

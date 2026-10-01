@@ -93,7 +93,6 @@
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
         }
 
-        /* סוג הורדה - טאבים */
         .type-selector {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -170,12 +169,12 @@
             box-shadow: none;
         }
 
-        /* מחוון טעינה והודעות */
         .status-box {
             margin-top: 18px;
             font-size: 14px;
             font-weight: 600;
             min-height: 24px;
+            line-height: 1.4;
         }
 
         .error-msg { color: #ef4444; }
@@ -197,7 +196,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* דיסקליימר */
         .disclaimer {
             margin-top: 28px;
             padding: 14px 16px;
@@ -241,7 +239,6 @@
     <div class="select-group">
         <label for="qualitySelect">איכות מבוקשת:</label>
         <select id="qualitySelect">
-            <!-- מתעדכן דינמית דרך JS -->
         </select>
     </div>
 
@@ -293,7 +290,6 @@
         updateQualityDropdown();
     }
 
-    // אתחול ראשוני של אפשרויות האיכות
     updateQualityDropdown();
 
     async function startDownload() {
@@ -309,8 +305,7 @@
             return;
         }
 
-        // איפוס ממשק
-        statusEl.textContent = currentType === 'audio' ? 'מחלץ וממיר את השמע ל-MP3... ⏳' : 'מכין ומוריד את הוידאו... ⏳';
+        statusEl.textContent = currentType === 'audio' ? 'מעבד וממיר את השמע ל-MP3... ⏳' : 'מכין ומוריד את הוידאו... ⏳';
         statusEl.className = 'status-box';
         spinner.style.display = 'block';
         submitBtn.disabled = true;
@@ -326,7 +321,14 @@
                 })
             });
 
-            const data = await res.json();
+            let data;
+            const textResponse = await res.text();
+            try {
+                data = JSON.parse(textResponse);
+            } catch (e) {
+                data = { error: 'השרת מחזיר תגובה לא תקינה (אולי עקב עומס או זמן המתנה ארוך).' };
+            }
+
             spinner.style.display = 'none';
             submitBtn.disabled = false;
 
@@ -341,13 +343,13 @@
                 a.click();
                 a.remove();
             } else {
-                statusEl.textContent = 'שגיאה: ' + (data.error || 'לא ניתן להוריד את הקובץ.');
+                statusEl.textContent = 'שגיאה: ' + (data.error || 'לא ניתן להוריד את הקובץ מהקישור הזה.');
                 statusEl.className = 'status-box error-msg';
             }
         } catch (err) {
             spinner.style.display = 'none';
             submitBtn.disabled = false;
-            statusEl.textContent = 'שגיאת רשת. אנא נסה שוב בעוד מספר שניות.';
+            statusEl.textContent = 'שגיאת תקשורת עם השרת: ' + err.message;
             statusEl.className = 'status-box error-msg';
         }
     }
