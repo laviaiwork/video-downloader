@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>הורדת סרטונים</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #1a1a1a;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #555;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            direction: ltr; /* שמירה על כיווניות שמאל-לימין עבור קישורים */
+            font-size: 16px;
+        }
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0052a3;
+        }
+        .disclaimer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #666;
+            background-color: #fff9e6;
+            border: 1px solid #ffeeba;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: justify;
+            line-height: 1.5;
+        }
+        #message {
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .error { color: #d9534f; }
+        .success { color: #5cb85c; }
+        #loader {
+            display: none;
+            margin-top: 15px;
+            color: #0066cc;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>מוריד הסרטונים</h1>
+        <p>הדבק כאן קישור לסרטון (יוטיוב, טיקטוק, אינסטגרם ועוד)</p>
+        
+        <input type="text" id="urlInput" placeholder="https://www.youtube.com/watch?v=...">
+        <button onclick="downloadVideo()">הורד סרטון</button>
+        
+        <div id="loader">טוען... זה עשוי לקחת מספר דקות תלוי באורך הסרטון ⏳</div>
+        <div id="message"></div>
+
+        <div class="disclaimer">
+            <strong>הצהרה משפטית חשובה:</strong> כלי זה נועד לשימוש אישי וחוקי בלבד. אין להשתמש באתר זה כדי להוריד, להפיץ או לעשות שימוש מסחרי בתכנים המוגנים בזכויות יוצרים ללא אישור מפורש מבעלי הזכויות. המשתמש באתר לוקח על עצמו את האחריות המלאה לכל הפרה של חוקי זכויות יוצרים (Copyright).
+        </div>
+    </div>
+
+    <script>
+        async function downloadVideo() {
+            const urlInput = document.getElementById('urlInput').value;
+            const messageDiv = document.getElementById('message');
+            const loader = document.getElementById('loader');
+            
+            if (!urlInput) {
+                messageDiv.textContent = 'אנא הכנס קישור תקין.';
+                messageDiv.className = 'error';
+                return;
+            }
+
+            messageDiv.textContent = '';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: urlInput })
+                });
+
+                const data = await response.json();
+                loader.style.display = 'none';
+
+                if (response.ok && data.success) {
+                    messageDiv.textContent = 'הסרטון מוכן! ההורדה מתחילה...';
+                    messageDiv.className = 'success';
+                    
+                    // יצירת קישור נסתר והפעלת לחיצה עליו כדי להתחיל את ההורדה בדפדפן
+                    const a = document.createElement('a');
+                    a.href = data.download_url;
+                    a.download = data.title;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                } else {
+                    messageDiv.textContent = 'שגיאה: ' + (data.error || 'לא ניתן להוריד את הסרטון מהקישור הזה.');
+                    messageDiv.className = 'error';
+                }
+            } catch (error) {
+                loader.style.display = 'none';
+                messageDiv.textContent = 'שגיאת רשת או שהשרת אינו זמין. נסה שוב מאוחר יותר.';
+                messageDiv.className = 'error';
+            }
+        }
+    </script>
+</body>
+</html>
